@@ -111,9 +111,6 @@ func New(
 	// See this conversation around why `.Clone()` is used here:
 	// https://github.com/golang/go/issues/26013
 	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	customTransport.IdleConnTimeout = DefaultIdleConnTimeout
-	customTransport.MaxIdleConns = f.maxConnections
-	customTransport.MaxIdleConnsPerHost = f.maxConnections
 	if f.insecureTLS {
 		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} // #nosec G402
 	}
