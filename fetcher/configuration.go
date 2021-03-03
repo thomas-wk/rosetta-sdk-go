@@ -57,10 +57,11 @@ func WithAsserter(asserter *asserter.Asserter) Option {
 	}
 }
 
-// WithTimeout overrides the default HTTP timeout.
+// WithTimeout specifies client.NetworkRoundTripTimeout when using the default
+// rosetta api client.
 func WithTimeout(timeout time.Duration) Option {
 	return func(f *Fetcher) {
-		f.rosettaClient.GetConfig().HTTPClient.Timeout = timeout
+		f.roundTripTimeout = timeout
 	}
 }
 

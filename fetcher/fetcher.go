@@ -18,7 +18,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"golang.org/x/sync/semaphore"
@@ -39,7 +38,13 @@ const (
 
 	// DefaultHTTPTimeout is the default timeout for
 	// HTTP requests.
+	// Deprecated: unused
 	DefaultHTTPTimeout = 10 * time.Second
+
+
+	// DefaultFetcherRoundTripTimeout is the default timeout applied
+	// to network operations when fetcher builds a rosetta api client.
+	DefaultFetcherRoundTripTimeout = 10 * time.Second
 
 	// DefaultUserAgent is the default userAgent
 	// to populate on requests to a Rosetta server.
@@ -48,6 +53,7 @@ const (
 	// DefaultIdleConnTimeout is the maximum amount of time an idle
 	// (keep-alive) connection will remain idle before closing
 	// itself.
+	// Deprecated: unused
 	DefaultIdleConnTimeout = 30 * time.Second
 
 	// DefaultMaxConnections limits the number of concurrent
@@ -72,6 +78,7 @@ type Fetcher struct {
 	maxRetries       uint64
 	retryElapsedTime time.Duration
 	forceRetry       bool
+	roundTripTimeout time.Duration
 
 	// connectionSemaphore is used to limit the
 	// number of concurrent requests we make.
@@ -83,26 +90,27 @@ func New(
 	serverAddress string,
 	options ...Option,
 ) *Fetcher {
-	// Create default fetcher
-	clientCfg := client.NewConfiguration(
-		serverAddress,
-		DefaultUserAgent,
-		&http.Client{
-			Timeout: DefaultHTTPTimeout,
-		})
-	client := client.NewAPIClient(clientCfg)
-
 	f := &Fetcher{
-		rosettaClient:    client,
+		rosettaClient:    nil,
 		maxConnections:   DefaultMaxConnections,
 		maxRetries:       DefaultRetries,
 		retryElapsedTime: DefaultElapsedTime,
+		roundTripTimeout: DefaultFetcherRoundTripTimeout,
 	}
 
 	// Override defaults with any provided options
 	for _, opt := range options {
 		opt(f)
 	}
+	if f.rosettaClient == nil {
+		clientCfg := client.NewConfiguration(
+			serverAddress,
+			DefaultUserAgent,
+			nil)
+		clientCfg.NetworkRoundTripTimeout = f.roundTripTimeout
+		f.rosettaClient = client.NewAPIClient(clientCfg)
+	}
+
 
 	// Initialize the connection semaphore
 	f.connectionSemaphore = semaphore.NewWeighted(int64(f.maxConnections))
