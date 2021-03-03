@@ -130,6 +130,8 @@ func contains(haystack []string, needle string) bool {
 
 // callAPI do the request.
 func (c *APIClient) callAPI(ctx context.Context, request *http.Request) (*http.Response, error) {
+	ctx, cancel := context.WithTimeout(ctx, c.cfg.NetworkRoundTripTimeout)
+	defer cancel()
 	if c.cfg.Debug {
 		dump, err := httputil.DumpRequestOut(request, true)
 		if err != nil {
@@ -168,7 +170,7 @@ func (c *APIClient) GetConfig() *Configuration {
 
 // prepareRequest build the request
 func (c *APIClient) prepareRequest(
-	ctx context.Context,
+	unsafeDoNotUse context.Context,
 	path string,
 	postBody interface{},
 	headerParams map[string]string,
@@ -222,11 +224,6 @@ func (c *APIClient) prepareRequest(
 
 	// Add the user agent to the request.
 	localVarRequest.Header.Add("User-Agent", c.cfg.UserAgent)
-
-	if ctx != nil {
-		// add context to the request
-		localVarRequest = localVarRequest.WithContext(ctx)
-	}
 
 	for header, value := range c.cfg.DefaultHeader {
 		localVarRequest.Header.Add(header, value)

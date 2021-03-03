@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // contextKeys are used to identify the type of value in the context.
@@ -44,6 +45,11 @@ var (
 
 	// ContextAPIKey takes an APIKey as authentication for the request
 	ContextAPIKey = contextKey("apikey")
+)
+
+const (
+	// DefaultNetworkRoundTripTimeout limits the duration spent making API calls to the rosetta server.
+	DefaultNetworkRoundTripTimeout = 10 * time.Second
 )
 
 // BasicAuth provides basic http authentication to a request passed via context using
@@ -83,6 +89,10 @@ type Configuration struct {
 	Debug         bool              `json:"debug,omitempty"`
 	Servers       []ServerConfiguration
 	HTTPClient    *http.Client
+	// NetworkRoundTripTimeout ensures all network API calls consume no more than a fixed
+	// amount of time. Individual API calls can have stricter timemouts via passing a
+	// context that has a shorter timeout into the function.
+	NetworkRoundTripTimeout time.Duration
 }
 
 // NewConfiguration returns a new Configuration object
@@ -98,6 +108,7 @@ func NewConfiguration(basePath string, userAgent string, httpClient *http.Client
 				Description: "No description provided",
 			},
 		},
+		NetworkRoundTripTimeout: DefaultNetworkRoundTripTimeout,
 	}
 
 	if httpClient != nil {
