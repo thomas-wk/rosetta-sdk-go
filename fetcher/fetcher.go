@@ -16,7 +16,6 @@ package fetcher
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
@@ -72,7 +71,6 @@ type Fetcher struct {
 	maxConnections   int
 	maxRetries       uint64
 	retryElapsedTime time.Duration
-	insecureTLS      bool
 	forceRetry       bool
 
 	// connectionSemaphore is used to limit the
@@ -105,16 +103,6 @@ func New(
 	for _, opt := range options {
 		opt(f)
 	}
-
-	// Override transport idle connection settings
-	//
-	// See this conversation around why `.Clone()` is used here:
-	// https://github.com/golang/go/issues/26013
-	customTransport := http.DefaultTransport.(*http.Transport).Clone()
-	if f.insecureTLS {
-		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true} // #nosec G402
-	}
-	f.rosettaClient.GetConfig().HTTPClient.Transport = customTransport
 
 	// Initialize the connection semaphore
 	f.connectionSemaphore = semaphore.NewWeighted(int64(f.maxConnections))

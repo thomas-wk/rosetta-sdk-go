@@ -57,19 +57,6 @@ func WithAsserter(asserter *asserter.Asserter) Option {
 	}
 }
 
-// WithInsecureTLS overrides the default TLS
-// security settings to allow insecure certificates
-// on an HTTPS connection.
-//
-// This should ONLY be used when debugging a Rosetta API
-// implementation. Using this option can lead to a man-in-the-middle
-// attack!!
-func WithInsecureTLS() Option {
-	return func(f *Fetcher) {
-		f.insecureTLS = true
-	}
-}
-
 // WithTimeout overrides the default HTTP timeout.
 func WithTimeout(timeout time.Duration) Option {
 	return func(f *Fetcher) {
