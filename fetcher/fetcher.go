@@ -111,7 +111,6 @@ func New(
 		f.rosettaClient = client.NewAPIClient(clientCfg)
 	}
 
-
 	// Initialize the connection semaphore
 	f.connectionSemaphore = semaphore.NewWeighted(int64(f.maxConnections))
 
